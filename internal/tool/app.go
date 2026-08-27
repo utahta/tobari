@@ -100,6 +100,14 @@ func createGoMod(path string, ver *version.Version, lang string) error {
 		if err := f.AddRequire("github.com/goccy/tobari", ver.Ver); err != nil {
 			return fmt.Errorf("failed to add require directive: %w", err)
 		}
+		if ver.ReplacePath != "" {
+			// The consuming module replaces tobari with a fork; without the
+			// same replace here, go mod tidy would try to fetch ver.Ver under
+			// the original path, where that revision does not exist.
+			if err := f.AddReplace("github.com/goccy/tobari", "", ver.ReplacePath, ver.Ver); err != nil {
+				return fmt.Errorf("failed to add replace directive: %w", err)
+			}
+		}
 	}
 	data, err := f.Format()
 	if err != nil {
@@ -123,4 +131,3 @@ func main() {}
 	}
 	return nil
 }
-

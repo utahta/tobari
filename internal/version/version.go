@@ -22,11 +22,21 @@ var ver string
 type Version struct {
 	Ver       string
 	LocalPath string
+	// ReplacePath is the replacement module path when the consuming module
+	// replaces github.com/goccy/tobari with another module (a fork). The
+	// temp app must carry the same replace, or its go.mod would require a
+	// version that does not exist under the original path.
+	ReplacePath string
 }
 
 func (v *Version) ID() string {
 	if v.LocalPath != "" {
 		sha := sha256.Sum256([]byte(v.LocalPath))
+		hash := hex.EncodeToString(sha[:])
+		return string(hash[:7])
+	}
+	if v.ReplacePath != "" {
+		sha := sha256.Sum256([]byte(v.ReplacePath + "@" + v.Ver))
 		hash := hex.EncodeToString(sha[:])
 		return string(hash[:7])
 	}
